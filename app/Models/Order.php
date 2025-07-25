@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class Order extends Model
 {
@@ -11,47 +14,51 @@ class Order extends Model
 
     protected $primaryKey = 'order_id';
     public $incrementing = false;
-    protected $keyType = 'string'; // Gunakan 'int' jika bukan UUID
+    protected $keyType = 'string';
 
     protected $fillable = [
         'order_id',
         'customer_id',
         'order_date',
         'total_amount',
-        'status'
+        'status',
+    ];
+
+    protected $casts = [
+        'order_date' => 'date',
+        'total_amount' => 'decimal:2',
+        'status' => 'string',
     ];
 
     /**
-     * Relasi ke Customer
+     * Relasi ke model Customer.
      */
-    public function customer()
+    public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class, 'customer_id', 'customer_id');
     }
 
     /**
-     * Relasi ke OrderItem
+     * Relasi ke model OrderItem.
      */
-    public function orderItems()
+    public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class, 'order_id', 'order_id');
     }
 
     /**
-     * Total kuantitas semua item dalam pesanan
+     * Total kuantitas semua item dalam pesanan.
      */
-    public function getTotalQuantityAttribute()
+    public function getTotalQuantityAttribute(): int
     {
-        return $this->orderItems->sum('quantity');
+        return $this->orderItems()->sum('quantity');
     }
 
     /**
-     * Total harga (jika ingin dihitung ulang dari item)
+     * Total harga dihitung ulang dari item pesanan.
      */
-    public function getComputedTotalAmountAttribute()
+    public function getComputedTotalAmountAttribute(): float
     {
-        return $this->orderItems->sum(function ($item) {
-            return $item->price * $item->quantity;
-        });
+        return $this->orderItems()->sum(DB::raw('price * quantity'));
     }
 }

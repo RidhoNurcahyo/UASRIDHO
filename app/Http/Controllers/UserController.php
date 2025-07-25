@@ -5,17 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use App\Http\Resources\UserResource;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class UserController extends Controller
 {
+    // Menampilkan semua user
     public function index(): JsonResponse
     {
-
-        $dataUser = User::all();
-        return response()->json($dataUser, 200);
+        $users = User::all();
+        return response()->json($users, 200);
     }
+
     // Menampilkan user berdasarkan ID
     public function show($id): JsonResponse
     {
@@ -30,19 +31,16 @@ class UserController extends Controller
     // Menambahkan user baru
     public function store(Request $request): JsonResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'username' => 'required|string',
+            'username' => 'required|string|unique:users,username',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'username' => $request->username,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-        ]);
+        $validated['password'] = bcrypt($validated['password']);
+
+        $user = User::create($validated);
 
         return response()->json([
             'message' => 'Akun pengguna berhasil ditambahkan.',
@@ -56,33 +54,31 @@ class UserController extends Controller
         try {
             $user = User::findOrFail($id);
 
-            $request->validate([
+            $validated = $request->validate([
                 'name' => 'sometimes|string|max:255',
+                'username' => 'sometimes|string|max:255|unique:users,username,' . $id,
                 'email' => 'sometimes|email|unique:users,email,' . $id,
-                'username' => 'sometimes|string|max:255|unique:users,username,'.$id,
                 'password' => 'sometimes|string|min:8',
             ]);
 
-            // Hanya update field yang dikirim
-            $data = $request->only(['name', 'email', 'password','username']);
-            if (isset($data['password'])) {
-                $data['password'] = bcrypt($data['password']);
+            if (isset($validated['password'])) {
+                $validated['password'] = bcrypt($validated['password']);
             }
-            logger('Data yg dikirim', $data);
-            $user->update($data);
-            
+
+            $user->update($validated);
 
             return response()->json([
                 'message' => $user->wasChanged()
                     ? 'Akun pengguna berhasil diupdate.'
                     : 'Tidak ada perubahan pada data pengguna.',
                 'data' => $user
-            ], 200);
+            ]);
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'User not found'], 404);
         }
     }
 
+    // Menghapus user
     public function destroy($id): JsonResponse
     {
         try {

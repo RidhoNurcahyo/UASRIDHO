@@ -14,11 +14,24 @@ class Product extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'product_id', 'name', 'description', 'price', 'stock', 'category_id'
+        'product_id',
+        'name',
+        'description',
+        'price',
+        'stock',
+        'category_id',
     ];
 
     /**
-     * Relasi ke kategori
+     * Override agar route model binding pakai product_id.
+     */
+    public function getRouteKeyName()
+    {
+        return 'product_id';
+    }
+
+    /**
+     * Relasi ke kategori.
      */
     public function category()
     {
@@ -26,7 +39,7 @@ class Product extends Model
     }
 
     /**
-     * Relasi ke order items
+     * Relasi ke order items.
      */
     public function orderItems()
     {

@@ -4,33 +4,36 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrderItem extends Model
 {
     use HasFactory;
 
-    protected $table = 'order_items';
-
-    protected $primaryKey = 'id';
-    public $incrementing = false; // karena menggunakan string/UUID
-    protected $keyType = 'string';
-
     protected $fillable = [
-        'id', 'order_id', 'product_id', 'quantity', 'price'
+        'order_id',
+        'product_id',
+        'quantity',
+        'price',
+    ];
+
+    protected $casts = [
+        'quantity' => 'integer',
+        'price' => 'decimal:2',
     ];
 
     /**
-     * Relasi ke Order
+     * Relasi ke model Order.
      */
-    public function order()
+    public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class, 'order_id', 'order_id');
     }
 
     /**
-     * Relasi ke Product
+     * Relasi ke model Product.
      */
-    public function product()
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'product_id', 'product_id');
     }

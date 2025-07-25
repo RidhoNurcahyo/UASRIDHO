@@ -2,36 +2,55 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable, HasUlids;
 
     /**
-     * The attributes that are mass assignable.
+     * Nama kolom primary key.
      *
-     * @var list<string>
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * Tipe data primary key adalah string (ULID).
+     *
+     * @var string
+     */
+    protected $keyType = 'string';
+
+    /**
+     * Nonaktifkan auto-increment karena menggunakan ULID.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
+    /**
+     * Atribut yang dapat diisi secara massal.
+     *
+     * @var array<string>
      */
     protected $fillable = [
+        'id', // optional jika pakai HasUlids, bisa dihilangkan
         'name',
-        'email',
         'username',
+        'email',
         'password',
+        'email_verified_at',
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * Atribut yang harus disembunyikan saat serialisasi.
      *
-     * @var list<string>
+     * @var array<string>
      */
     protected $hidden = [
         'password',
@@ -39,22 +58,22 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * Atribut yang harus di-cast.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'name'=>'string',
-            'username'=>'string',
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
 
+    /**
+     * Mutator untuk memastikan username selalu huruf kecil.
+     *
+     * @param string $value
+     * @return void
+     */
     public function setUsernameAttribute($value)
-{
-    $this->attributes['username'] = strtolower($value);
-}
+    {
+        $this->attributes['username'] = strtolower($value);
+    }
 }

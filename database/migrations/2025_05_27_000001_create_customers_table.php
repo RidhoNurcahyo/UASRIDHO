@@ -7,13 +7,15 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void {
         Schema::create('customers', function (Blueprint $table) {
-            $table->string('customer_id')->primary();
-            $table->string('name', 50);
-            $table->string('email', 50);
-            $table->char('password', 50);
-            $table->date('phone');
-            $table->date('address');
+            $table->uuid('customer_id')->primary();
+            $table->string('name', 255);
+            $table->string('email', 255)->unique();
+            $table->string('password', 255);
+            $table->string('phone', 20)->nullable();
+            $table->text('address')->nullable();
+            $table->timestamp('email_verified_at')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
